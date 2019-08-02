@@ -1,6 +1,6 @@
 # A simplified Prometheus API for Kotlin
 
-[![Build Status](https://travis-ci.org/crunch-accounting/prometheus-kotlin.svg?branch=master)](https://travis-ci.org/crunch-accounting/prometheus-kotlin) [![codecov](https://codecov.io/gh/crunch-accounting/prometheus-kotlin/branch/master/graph/badge.svg)](https://codecov.io/gh/crunch-accounting/prometheus-kotlin)
+[![Build Status](https://travis-ci.org/poblish/prometheus-kotlin.svg?branch=master)](https://travis-ci.org/poblish/prometheus-kotlin) [![codecov](https://codecov.io/gh/crunch-accounting/prometheus-kotlin-api/branch/master/graph/badge.svg)](https://codecov.io/gh/crunch-accounting/prometheus-kotlin-api)
 
 * API geared aimed at application developers rather than Prometheus experts.
 * Name-based metrics; no need to create instances or handle registration.
