@@ -186,12 +186,12 @@
       <repository>
           <id>nexus</id>
           <name>Crunch releases</name>
-          <url>http://nexus.crunch.dev.local/content/repositories/releases/</url>
+          <url>http://nexus-plat.crunch.co.uk/content/repositories/releases/</url>
       </repository>
       <snapshotRepository>
           <id>nexus</id>
           <name>Internal Snapshots</name>
-          <url>http://nexus.crunch.dev.local/content/repositories/snapshots/</url>
+          <url>http://nexus-plat.crunch.co.uk/content/repositories/snapshots/</url>
       </snapshotRepository>
   </distributionManagement>
 </project>
