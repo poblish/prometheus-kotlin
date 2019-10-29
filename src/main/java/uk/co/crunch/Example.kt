@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED_PARAMETER")
+
 package uk.co.crunch
 
 import uk.co.crunch.api.PrometheusMetrics
