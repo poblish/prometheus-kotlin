@@ -2,7 +2,6 @@ package uk.co.crunch.api
 
 import io.prometheus.client.Collector
 import io.prometheus.client.CollectorRegistry
-import uk.co.crunch.utils.PrometheusUtils
 import java.io.Closeable
 import java.util.*
 import java.util.Optional.empty
@@ -26,7 +25,7 @@ class PrometheusMetrics {
 
     constructor(registry: CollectorRegistry, metricNamePrefix: String) {
         this.registry = registry
-        this.metricNamePrefix = PrometheusUtils.normaliseName(metricNamePrefix) + "_"
+        this.metricNamePrefix = normaliseName(metricNamePrefix) + "_"
     }
 
     fun registerCustomCollector(collector: Collector) {
@@ -83,7 +82,7 @@ class PrometheusMetrics {
     fun error(name: String, desc: String) = incrementError(name, of(desc))
 
     private fun <T : Metric> getOrAdd(name: String, desc: Optional<String>, builder: MetricBuilder<T>): T {
-        val adjustedName = metricNamePrefix + PrometheusUtils.normaliseName(name)
+        val adjustedName = metricNamePrefix + normaliseName(name)
 
         // Get/check existing local metric
         val metric = metrics[adjustedName]
@@ -219,6 +218,14 @@ class PrometheusMetrics {
     }
 
     companion object {
+
+        fun normaliseName(name: String): String {
+            return name.replace('.', '_')
+                    .replace('-', '_')
+                    .replace('#', '_')
+                    .replace(' ', '_')
+                    .toLowerCase()
+        }
 
         private fun createSummary(name: String, description: String) = io.prometheus.client.Summary.build()
                 .name(name)
