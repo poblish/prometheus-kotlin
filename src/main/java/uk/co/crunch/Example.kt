@@ -2,9 +2,9 @@
 
 package uk.co.crunch
 
-import uk.co.crunch.api.PrometheusMetrics
+import uk.co.crunch.api.kotlin.PrometheusMetrics
 
-class Example(private val metrics: PrometheusMetrics) {
+internal class Example(private val metrics: PrometheusMetrics) {
 
     fun onUserLogin(event: Any) {
         metrics.gauge("Sessions.open").inc()

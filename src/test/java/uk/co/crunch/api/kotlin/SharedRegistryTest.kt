@@ -1,4 +1,4 @@
-package uk.co.crunch.api
+package uk.co.crunch.api.kotlin
 
 import io.prometheus.client.CollectorRegistry
 import org.junit.jupiter.api.Test

@@ -1,4 +1,4 @@
-package uk.co.crunch
+package uk.co.crunch.api.kotlin
 
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.TestableTimeProvider
@@ -8,8 +8,8 @@ import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
+import uk.co.crunch.Example
 import uk.co.crunch.TestUtils.samplesString
-import uk.co.crunch.api.PrometheusMetrics
 
 class ExampleTest {
     private lateinit var registry: CollectorRegistry
