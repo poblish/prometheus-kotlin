@@ -40,6 +40,7 @@ class PrometheusMetrics {
     fun clear() {
         this.metrics.clear()
         this.registry.clear()
+        this.errorCounter = null
     }
 
     @CheckReturnValue
