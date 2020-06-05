@@ -103,19 +103,19 @@ class PrometheusMetrics {
     }
 
     private fun incrementError(name: String, desc: Optional<String>): ErrorCounter {
-        val counter = getErrorCounter(desc)!!.labels(name)
+        val counter = getErrorCounter(desc).labels(name)
         counter.inc()
         return ErrorCounter(counter)
     }
 
     @Synchronized
-    private fun getErrorCounter(desc: Optional<String>): io.prometheus.client.Counter? {
+    private fun getErrorCounter(desc: Optional<String>): io.prometheus.client.Counter {
         if (this.errorCounter == null) {
             val adjustedName = metricNamePrefix + "errors"
             val description = desc.orElse( descriptionMappings.getProperty(adjustedName) ?: adjustedName)
             this.errorCounter = registerPrometheusMetric(io.prometheus.client.Counter.build().name(adjustedName).help(description).labelNames("error_type").create(), registry)
         }
-        return this.errorCounter
+        return this.errorCounter!!
     }
 
     private interface MetricBuilder<T : Metric> {
