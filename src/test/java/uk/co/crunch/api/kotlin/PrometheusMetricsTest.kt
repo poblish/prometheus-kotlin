@@ -165,17 +165,19 @@ class PrometheusMetricsTest {
     @Test
     fun errors() {
         metrics.error("salesforce")
-        expectThat(registry.getSampleValue("myapp_errors", arrayOf("error_type"), arrayOf("salesforce"))).isEqualTo(1.0)
+
+        val errorsHelper = metrics.testHelper().forErrors("myapp_errors")
+        expectThat(errorsHelper.labelled("salesforce").value()).isEqualTo(1.0)
 
         metrics.error("stripe_transaction", "Stripe transaction error")
-        expectThat(registry.getSampleValue("myapp_errors", arrayOf("error_type"), arrayOf("stripe_transaction"))).isEqualTo(1.0)
+        expectThat(errorsHelper.labelled("stripe_transaction").value()).isEqualTo(1.0)
 
         val stErr = metrics.error("stripe_transaction")
         expectThat(stErr.count()).isEqualTo(2.0)
 
         expect {
-            that(registry.getSampleValue("myapp_errors", arrayOf("error_type"), arrayOf("stripe_transaction"))).isEqualTo(2.0)
-            that(registry.getSampleValue("myapp_errors", arrayOf("error_type"), arrayOf("unknown"))).isNull()
+            that(errorsHelper.labelled("stripe_transaction").value()).isEqualTo(2.0)
+            that(errorsHelper.labelled("unknown").value()).isNull()
             that(metrics.error("stripe_transaction", "with desc this time").count()).isEqualTo(3.0)
         }
     }
@@ -196,6 +198,10 @@ class PrometheusMetricsTest {
 
         metrics.gauge("g_1", "desc").dec(1981.0)
         expectThat(registry.getSampleValue("myapp_g_1")).isEqualTo(expected - 1981)
+
+        // Check Helper
+        val helper = metrics.testHelper()
+        expectThat(helper.sampleValue("myapp_g_1")).isEqualTo(expected - 1981)
     }
 
     @Test

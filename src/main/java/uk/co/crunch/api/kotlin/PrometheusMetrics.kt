@@ -112,7 +112,7 @@ class PrometheusMetrics {
     private fun getErrorCounter(desc: Optional<String>): io.prometheus.client.Counter {
         if (this.errorCounter == null) {
             val adjustedName = metricNamePrefix + "errors"
-            val description = desc.orElse( descriptionMappings.getProperty(adjustedName) ?: adjustedName)
+            val description = desc.orElse(descriptionMappings.getProperty(adjustedName) ?: adjustedName)
             this.errorCounter = registerPrometheusMetric(io.prometheus.client.Counter.build().name(adjustedName).help(description).labelNames("error_type").create(), registry)
         }
         return this.errorCounter!!
@@ -216,6 +216,24 @@ class PrometheusMetrics {
         private class TimerContext internal constructor(internal val requestTimer: io.prometheus.client.Histogram.Timer) : Context {
             override fun close() = requestTimer.close()
         }
+    }
+
+    fun testHelper() = TestHelper(this.registry)
+
+    class TestHelper(private val registry: CollectorRegistry) {
+        fun sampleValue(name: String) = registry.getSampleValue(name)
+
+        @CheckReturnValue
+        fun forErrors(name: String) = ErrorsHelper(this.registry, name)
+    }
+
+    class ErrorsHelper(private val registry: CollectorRegistry, private val name: String) {
+        @CheckReturnValue
+        fun labelled(label: String) = ErrorLabelSampleValuer(this.registry, this.name, label)
+    }
+
+    class ErrorLabelSampleValuer(private val registry: CollectorRegistry, private val name: String, private val label: String) {
+        fun value() = registry.getSampleValue(name, arrayOf("error_type"), arrayOf(label))
     }
 
     companion object {
