@@ -62,10 +62,10 @@ class PrometheusMetrics {
     fun summary(name: String, desc: String) = getOrAdd(name, of(desc), MetricBuilder.SUMMARIES)
 
     @CheckReturnValue
-    fun timed(name: String) = getOrAdd(name, empty(), MetricBuilder.ONE_SHOT_TIMERS)
+    fun timed(name: String) = timer(name).time()
 
     @CheckReturnValue
-    fun timed(name: String, desc: String) = getOrAdd(name, of(desc), MetricBuilder.ONE_SHOT_TIMERS)
+    fun timed(name: String, desc: String) = timer(name, desc).time()
 
     @CheckReturnValue
     fun counter(name: String) = getOrAdd(name, empty(), MetricBuilder.COUNTERS)
@@ -151,13 +151,6 @@ class PrometheusMetrics {
 
                 override fun isInstance(metric: Metric) = metric is Summary
             }
-
-            val ONE_SHOT_TIMERS: MetricBuilder<OneShotTimer> = object : MetricBuilder<OneShotTimer> {
-                override fun newMetric(name: String, desc: String, registry: CollectorRegistry) =
-                        OneShotTimer(registerPrometheusMetric(createSummary(name, desc), registry).startTimer())
-
-                override fun isInstance(metric: Metric) = metric is OneShotTimer
-            }
         }
     }
 
@@ -196,10 +189,6 @@ class PrometheusMetrics {
         private class TimerContext internal constructor(internal val requestTimer: io.prometheus.client.Summary.Timer) : Context {
             override fun close() = requestTimer.close()
         }
-    }
-
-    class OneShotTimer internal constructor(private val promTimer: io.prometheus.client.Summary.Timer) : Metric, Closeable {
-        override fun close() = promTimer.close()
     }
 
     class Histogram internal constructor(private val promMetric: io.prometheus.client.Histogram) : Metric {

@@ -8,10 +8,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import strikt.api.expect
 import strikt.api.expectThat
-import strikt.assertions.contains
-import strikt.assertions.isEqualTo
-import strikt.assertions.isNull
-import strikt.assertions.startsWith
+import strikt.assertions.*
 import uk.co.crunch.TestUtils.samplesString
 import java.io.File
 import java.util.*
@@ -66,16 +63,16 @@ class PrometheusMetricsTest {
     @Test
     fun timed() {
         val random = System.nanoTime()
-        metrics.timed("Test.timer#$random").use { println("Hi $random") }
 
-        // reuse
-        metrics.timed("Test.timer#$random").use { println("Bye $random") }
+        for (i in 1..10) {  // reuse
+            metrics.timed("Test.timer#$random").use { println("Bye $random") }
+        }
 
         expectThat(samplesString(registry))
                 .startsWith("[Name: myapp_test_timer_$random Type: SUMMARY Help: myapp_test")
-                .contains("Name: myapp_test_timer_" + random + "_count LabelNames: [] labelValues: [] Value: 2.0 TimestampMs: null")
-                .contains("Name: myapp_test_timer_" + random + "_sum LabelNames: [] labelValues: [] Value: 5.937E-6")
-        expectThat(registry.getSampleValue("myapp_test_timer_" + random + "_sum")!! * 1E+9).isEqualTo(5937.0)
+                .contains("Name: myapp_test_timer_" + random + "_count LabelNames: [] labelValues: [] Value: 10.0 TimestampMs: null")
+                .contains("Name: myapp_test_timer_" + random + "_sum LabelNames: [] labelValues: [] Value: 1.97")
+        expectThat(registry.getSampleValue("myapp_test_timer_" + random + "_sum")!! * 1E+9).isIn(19789.99 .. 19790.01)
     }
 
     @Test
