@@ -2,7 +2,7 @@ package uk.co.crunch.benchmarks
 
 import org.openjdk.jmh.annotations.*
 import org.openjdk.jmh.infra.Blackhole
-import uk.co.crunch.api.PrometheusMetrics
+import uk.co.crunch.api.kotlin.PrometheusMetrics
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 

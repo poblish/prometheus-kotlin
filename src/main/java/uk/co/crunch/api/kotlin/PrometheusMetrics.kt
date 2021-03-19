@@ -1,8 +1,7 @@
-package uk.co.crunch.api
+package uk.co.crunch.api.kotlin
 
 import io.prometheus.client.Collector
 import io.prometheus.client.CollectorRegistry
-import uk.co.crunch.utils.PrometheusUtils
 import java.io.Closeable
 import java.util.*
 import java.util.Optional.empty
@@ -26,7 +25,7 @@ class PrometheusMetrics {
 
     constructor(registry: CollectorRegistry, metricNamePrefix: String) {
         this.registry = registry
-        this.metricNamePrefix = PrometheusUtils.normaliseName(metricNamePrefix) + "_"
+        this.metricNamePrefix = normaliseName(metricNamePrefix) + "_"
     }
 
     fun registerCustomCollector(collector: Collector) {
@@ -41,6 +40,7 @@ class PrometheusMetrics {
     fun clear() {
         this.metrics.clear()
         this.registry.clear()
+        this.errorCounter = null
     }
 
     @CheckReturnValue
@@ -62,10 +62,10 @@ class PrometheusMetrics {
     fun summary(name: String, desc: String) = getOrAdd(name, of(desc), MetricBuilder.SUMMARIES)
 
     @CheckReturnValue
-    fun timed(name: String) = getOrAdd(name, empty(), MetricBuilder.ONE_SHOT_TIMERS)
+    fun timed(name: String) = timer(name).time()
 
     @CheckReturnValue
-    fun timed(name: String, desc: String) = getOrAdd(name, of(desc), MetricBuilder.ONE_SHOT_TIMERS)
+    fun timed(name: String, desc: String) = timer(name, desc).time()
 
     @CheckReturnValue
     fun counter(name: String) = getOrAdd(name, empty(), MetricBuilder.COUNTERS)
@@ -83,7 +83,7 @@ class PrometheusMetrics {
     fun error(name: String, desc: String) = incrementError(name, of(desc))
 
     private fun <T : Metric> getOrAdd(name: String, desc: Optional<String>, builder: MetricBuilder<T>): T {
-        val adjustedName = metricNamePrefix + PrometheusUtils.normaliseName(name)
+        val adjustedName = metricNamePrefix + normaliseName(name)
 
         // Get/check existing local metric
         val metric = metrics[adjustedName]
@@ -103,19 +103,19 @@ class PrometheusMetrics {
     }
 
     private fun incrementError(name: String, desc: Optional<String>): ErrorCounter {
-        val counter = getErrorCounter(desc)!!.labels(name)
+        val counter = getErrorCounter(desc).labels(name)
         counter.inc()
         return ErrorCounter(counter)
     }
 
     @Synchronized
-    private fun getErrorCounter(desc: Optional<String>): io.prometheus.client.Counter? {
+    private fun getErrorCounter(desc: Optional<String>): io.prometheus.client.Counter {
         if (this.errorCounter == null) {
             val adjustedName = metricNamePrefix + "errors"
-            val description = desc.orElse( descriptionMappings.getProperty(adjustedName) ?: adjustedName)
+            val description = desc.orElse(descriptionMappings.getProperty(adjustedName) ?: adjustedName)
             this.errorCounter = registerPrometheusMetric(io.prometheus.client.Counter.build().name(adjustedName).help(description).labelNames("error_type").create(), registry)
         }
-        return this.errorCounter
+        return this.errorCounter!!
     }
 
     private interface MetricBuilder<T : Metric> {
@@ -150,13 +150,6 @@ class PrometheusMetrics {
                         Summary(registerPrometheusMetric(createSummary(name, desc), registry))
 
                 override fun isInstance(metric: Metric) = metric is Summary
-            }
-
-            val ONE_SHOT_TIMERS: MetricBuilder<OneShotTimer> = object : MetricBuilder<OneShotTimer> {
-                override fun newMetric(name: String, desc: String, registry: CollectorRegistry) =
-                        OneShotTimer(registerPrometheusMetric(createSummary(name, desc), registry).startTimer())
-
-                override fun isInstance(metric: Metric) = metric is OneShotTimer
             }
         }
     }
@@ -198,10 +191,6 @@ class PrometheusMetrics {
         }
     }
 
-    class OneShotTimer internal constructor(private val promTimer: io.prometheus.client.Summary.Timer) : Metric, Closeable {
-        override fun close() = promTimer.close()
-    }
-
     class Histogram internal constructor(private val promMetric: io.prometheus.client.Histogram) : Metric {
 
         fun time() = TimerContext(promMetric.startTimer()) as Context
@@ -218,7 +207,33 @@ class PrometheusMetrics {
         }
     }
 
+    fun testHelper() = TestHelper(this.registry)
+
+    class TestHelper(private val registry: CollectorRegistry) {
+        fun sampleValue(name: String) = registry.getSampleValue(name)
+
+        @CheckReturnValue
+        fun forErrors(name: String) = ErrorsHelper(this.registry, name)
+    }
+
+    class ErrorsHelper(private val registry: CollectorRegistry, private val name: String) {
+        @CheckReturnValue
+        fun labelled(label: String) = ErrorLabelSampleValuer(this.registry, this.name, label)
+    }
+
+    class ErrorLabelSampleValuer(private val registry: CollectorRegistry, private val name: String, private val label: String) {
+        fun value() = registry.getSampleValue(name, arrayOf("error_type"), arrayOf(label))
+    }
+
     companion object {
+
+        fun normaliseName(name: String): String {
+            return name.replace('.', '_')
+                    .replace('-', '_')
+                    .replace('#', '_')
+                    .replace(' ', '_')
+                    .toLowerCase()
+        }
 
         private fun createSummary(name: String, description: String) = io.prometheus.client.Summary.build()
                 .name(name)

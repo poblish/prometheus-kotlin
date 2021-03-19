@@ -1,4 +1,4 @@
-package uk.co.crunch.api
+package uk.co.crunch.api.kotlin
 
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.TestableTimeProvider
@@ -8,10 +8,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import strikt.api.expect
 import strikt.api.expectThat
-import strikt.assertions.contains
-import strikt.assertions.isEqualTo
-import strikt.assertions.isNull
-import strikt.assertions.startsWith
+import strikt.assertions.*
 import uk.co.crunch.TestUtils.samplesString
 import java.io.File
 import java.util.*
@@ -66,16 +63,16 @@ class PrometheusMetricsTest {
     @Test
     fun timed() {
         val random = System.nanoTime()
-        metrics.timed("Test.timer#$random").use { println("Hi $random") }
 
-        // reuse
-        metrics.timed("Test.timer#$random").use { println("Bye $random") }
+        for (i in 1..10) {  // reuse
+            metrics.timed("Test.timer#$random").use { println("Bye $random") }
+        }
 
         expectThat(samplesString(registry))
                 .startsWith("[Name: myapp_test_timer_$random Type: SUMMARY Help: myapp_test")
-                .contains("Name: myapp_test_timer_" + random + "_count LabelNames: [] labelValues: [] Value: 2.0 TimestampMs: null")
-                .contains("Name: myapp_test_timer_" + random + "_sum LabelNames: [] labelValues: [] Value: 5.937E-6")
-        expectThat(registry.getSampleValue("myapp_test_timer_" + random + "_sum")!! * 1E+9).isEqualTo(5937.0)
+                .contains("Name: myapp_test_timer_" + random + "_count LabelNames: [] labelValues: [] Value: 10.0 TimestampMs: null")
+                .contains("Name: myapp_test_timer_" + random + "_sum LabelNames: [] labelValues: [] Value: 1.97")
+        expectThat(registry.getSampleValue("myapp_test_timer_" + random + "_sum")!! * 1E+9).isIn(19789.99 .. 19790.01)
     }
 
     @Test
@@ -165,17 +162,19 @@ class PrometheusMetricsTest {
     @Test
     fun errors() {
         metrics.error("salesforce")
-        expectThat(registry.getSampleValue("myapp_errors", arrayOf("error_type"), arrayOf("salesforce"))).isEqualTo(1.0)
+
+        val errorsHelper = metrics.testHelper().forErrors("myapp_errors")
+        expectThat(errorsHelper.labelled("salesforce").value()).isEqualTo(1.0)
 
         metrics.error("stripe_transaction", "Stripe transaction error")
-        expectThat(registry.getSampleValue("myapp_errors", arrayOf("error_type"), arrayOf("stripe_transaction"))).isEqualTo(1.0)
+        expectThat(errorsHelper.labelled("stripe_transaction").value()).isEqualTo(1.0)
 
         val stErr = metrics.error("stripe_transaction")
         expectThat(stErr.count()).isEqualTo(2.0)
 
         expect {
-            that(registry.getSampleValue("myapp_errors", arrayOf("error_type"), arrayOf("stripe_transaction"))).isEqualTo(2.0)
-            that(registry.getSampleValue("myapp_errors", arrayOf("error_type"), arrayOf("unknown"))).isNull()
+            that(errorsHelper.labelled("stripe_transaction").value()).isEqualTo(2.0)
+            that(errorsHelper.labelled("unknown").value()).isNull()
             that(metrics.error("stripe_transaction", "with desc this time").count()).isEqualTo(3.0)
         }
     }
@@ -196,6 +195,10 @@ class PrometheusMetricsTest {
 
         metrics.gauge("g_1", "desc").dec(1981.0)
         expectThat(registry.getSampleValue("myapp_g_1")).isEqualTo(expected - 1981)
+
+        // Check Helper
+        val helper = metrics.testHelper()
+        expectThat(helper.sampleValue("myapp_g_1")).isEqualTo(expected - 1981)
     }
 
     @Test

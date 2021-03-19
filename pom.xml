@@ -4,7 +4,7 @@
 
   <groupId>uk.co.crunch</groupId>
   <artifactId>prometheus-kotlin-api</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.4</version>
   <packaging>jar</packaging>
 
   <name>Prometheus API</name>
@@ -12,11 +12,11 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <prometheus.version>0.5.0</prometheus.version>
-    <kotlin.version>1.3.41</kotlin.version>
+    <prometheus.version>0.9.0</prometheus.version>
+    <kotlin.version>1.3.72</kotlin.version>
     <surefire-plugin.version>2.22.1</surefire-plugin.version>
-    <junit-engine.version>5.3.1</junit-engine.version>
-    <junit-platform.version>1.3.1</junit-platform.version>
+    <junit-engine.version>5.6.2</junit-engine.version>
+    <junit-platform.version>1.6.2</junit-platform.version>
   </properties>
 
   <build>
@@ -141,7 +141,7 @@
     <dependency>
       <groupId>io.strikt</groupId>
       <artifactId>strikt-core</artifactId>
-      <version>0.21.1</version>
+      <version>0.26.1</version>
       <scope>test</scope>
     </dependency>
 
@@ -186,12 +186,12 @@
       <repository>
           <id>nexus</id>
           <name>Crunch releases</name>
-          <url>http://nexus.crunch.dev.local/content/repositories/releases/</url>
+          <url>http://nexus-plat.crunch.co.uk/content/repositories/releases/</url>
       </repository>
       <snapshotRepository>
           <id>nexus</id>
           <name>Internal Snapshots</name>
-          <url>http://nexus.crunch.dev.local/content/repositories/snapshots/</url>
+          <url>http://nexus-plat.crunch.co.uk/content/repositories/snapshots/</url>
       </snapshotRepository>
   </distributionManagement>
 </project>
