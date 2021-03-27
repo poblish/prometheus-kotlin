@@ -127,7 +127,7 @@
     <dependency>
       <groupId>io.strikt</groupId>
       <artifactId>strikt-core</artifactId>
-      <version>0.26.1</version>
+      <version>0.30.0</version>
       <scope>test</scope>
     </dependency>
 
@@ -157,13 +157,6 @@
     </dependency>
 
   </dependencies>
-
-  <repositories>
-    <repository>
-      <id>jcenter</id>
-      <url>https://jcenter.bintray.com/</url>
-    </repository>
-  </repositories>
 
   <!-- Definitions of the repository endpoints to use for RELEASE/SNAPSHOT deployments. -->
   <!-- NOTE: The Id is the same for both to allow deploying of snapshots and releases agains the same credentials -->
