@@ -186,7 +186,7 @@ class PrometheusMetrics {
 
         fun time() = TimerContext(promMetric.startTimer()) as Context
 
-        private class TimerContext internal constructor(internal val requestTimer: io.prometheus.client.Summary.Timer) : Context {
+        private class TimerContext(val requestTimer: io.prometheus.client.Summary.Timer) : Context {
             override fun close() = requestTimer.close()
         }
     }
@@ -202,7 +202,7 @@ class PrometheusMetrics {
             return this
         }
 
-        private class TimerContext internal constructor(internal val requestTimer: io.prometheus.client.Histogram.Timer) : Context {
+        private class TimerContext(val requestTimer: io.prometheus.client.Histogram.Timer) : Context {
             override fun close() = requestTimer.close()
         }
     }
@@ -210,7 +210,7 @@ class PrometheusMetrics {
     fun testHelper() = TestHelper(this.registry)
 
     class TestHelper(private val registry: CollectorRegistry) {
-        fun sampleValue(name: String) = registry.getSampleValue(name)
+        fun sampleValue(name: String): Double? = registry.getSampleValue(name)
 
         @CheckReturnValue
         fun forErrors(name: String) = ErrorsHelper(this.registry, name)
@@ -222,7 +222,7 @@ class PrometheusMetrics {
     }
 
     class ErrorLabelSampleValuer(private val registry: CollectorRegistry, private val name: String, private val label: String) {
-        fun value() = registry.getSampleValue(name, arrayOf("error_type"), arrayOf(label))
+        fun value(): Double? = registry.getSampleValue(name, arrayOf("error_type"), arrayOf(label))
     }
 
     companion object {
